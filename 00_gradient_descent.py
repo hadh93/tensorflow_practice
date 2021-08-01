@@ -79,9 +79,9 @@ def bias_test():
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     check_tf_ver()
-#    time.sleep(3)
-#    random_number_generation_test()
-#    time.sleep(3)
-#    neuron_generation_test()
+    time.sleep(3)
+    random_number_generation_test()
+    time.sleep(3)
+    neuron_generation_test()
     time.sleep(3)
     bias_test()
