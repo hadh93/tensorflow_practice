@@ -1,10 +1,20 @@
-# 시작하기에 앞서:
-# XOR 문제는 '인공지능의 겨울'을 불러온 것으로 잘 알려져 있다.
-# 그 핵심은, 하나의 퍼셉트론은 XOR 연산자도 만들어낼 수 없다는 점이다.
-# (Marvin Minsky & Seymour Papert 의 'Perceptron'이라는 책에 증명된 바 있음)
+import matplotlib.pyplot as plt
+import tensorflow as tf
+import time
 
-# 해결책은 여러 개의 퍼셉트론을 사용하는 것이다! 3 개의 퍼셉트론과 뉴런을 사용하여 XOR 문제를 해결해보자.
+x = range(20)
+# x의 범위: 0~19
+y = tf.random.normal([20], 0, 1)
+# y는 길이 20짜리 1차원 벡터. 평균 0, 표준편차 1 범위의 random draw.
 
+# plt.plot은 기본적으로 꺾은선 그래프이다.
+plt.plot(x, y)
+plt.show()
+time.sleep(3)
+
+# 점 그래프로도 변환 가능. 'blue o'라는 뜻
+plt.plot(x, y, 'bo') # ro로 바꾸면 빨간 점, yo로 바꾸면 노란 점...
+plt.show()
 
 import numpy as np
 import tensorflow as tf
@@ -35,3 +45,6 @@ print(model.predict(x))
 
 for weight in model.weights:
     print(weight)
+
+plt.plot(history.history['loss'])
+plt.show()
