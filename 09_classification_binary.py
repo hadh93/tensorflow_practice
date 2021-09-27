@@ -5,10 +5,12 @@ import tensorflow as tf
 
 # UCI의 와인 데이터 세트를 사용.
 # 외부에서 데이터를 불러오고 정제하는 과정.
-red = pd.read_csv('http://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv', sep=';')
-white = pd.read_csv('http://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv', sep=';')
-#print(red.head())
-#print(white.head())
+red = pd.read_csv('http://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv',
+                  sep=';')
+white = pd.read_csv('http://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv',
+                    sep=';')
+# print(red.head())
+# print(white.head())
 
 # 와인이 레드(0)와인인지 화이트(1)와인인지 표시하는 속성('type')을 추가한다.
 red['type'] = 0
@@ -23,7 +25,7 @@ wine = pd.concat([red, white])
 # 데이터프레임 wine의 type 속성만 히스토그램으로 출력한다.
 # 현재 데이터셋에서는 레드보다 화이트와인이 약 3배 많은 상황.
 plt.hist(wine['type'])
-plt.xticks([0,1])
+plt.xticks([0, 1])
 plt.show()
 # print(wine['type'].value_counts())
 
@@ -32,7 +34,7 @@ plt.show()
 # 현재 모두 non-null이고, float64거나 int64이므로 정규화 진행 가능하다.
 # print(wine.info())
 
-wine_norm = ( wine - wine.min() ) / ( wine.max() - wine.min() )
+wine_norm = (wine - wine.min()) / (wine.max() - wine.min())
 # print(wine_norm.head())
 # print(wine_norm.describe()) # 속성들의 min값이 0, max값이 1이므로 정규화가 잘 진행되었다.
 
@@ -47,7 +49,7 @@ wine_np = wine_shuffle.to_numpy()
 # print(wine_np[:5])
 
 # 데이터 셋의 80%를 학습 데이터로, 20%를 테스트 데이터로 분할하는 과정.
-train_idx = int(len(wine_np)*0.8) # 데이터셋을 나눌 구분점이 되는 인덱스. 데이터셋의 80% 지점.
+train_idx = int(len(wine_np)*0.8)  # 데이터셋을 나눌 구분점이 되는 인덱스. 데이터셋의 80% 지점.
 train_X, train_Y = wine_np[:train_idx, :-1], wine_np[:train_idx, -1]
 # 구분점까지의 모든 IV들 (마지막 한칸을 제외한 전부)은 X에, 구분점까지의 모든 DV들 (마지막 한 칸)은 Y에 저장.
 test_X, test_Y = wine_np[train_idx:, :-1], wine_np[train_idx:, -1]
@@ -100,14 +102,14 @@ model.summary()
 
 history = model.fit(train_X, train_Y, epochs=25, batch_size=32, validation_split=0.25)
 
-plt.figure(figsize=(12,4))
-plt.subplot(1,2,1)
+plt.figure(figsize=(12, 4))
+plt.subplot(1, 2, 1)
 plt.plot(history.history['loss'], 'b-', label='loss')
 plt.plot(history.history['val_loss'], 'r--', label='val_loss')
 plt.xlabel('Epoch')
 plt.legend()
 
-plt.subplot(1,2,2)
+plt.subplot(1, 2, 2)
 plt.plot(history.history['accuracy'], 'g--', label='accuracy')
 plt.plot(history.history['val_accuracy'], 'k--', label='val_accuracy')
 plt.xlabel('Epoch')
