@@ -22,87 +22,59 @@ white['type'] = 1
 wine = pd.concat([red, white])
 # print(wine.describe())
 
-# 데이터프레임 wine의 type 속성만 히스토그램으로 출력한다.
-# 현재 데이터셋에서는 레드보다 화이트와인이 약 3배 많은 상황.
-plt.hist(wine['type'])
-plt.xticks([0, 1])
-plt.show()
-# print(wine['type'].value_counts())
+# 다항 분류를 위해 '품질' 항목을 시각화
+# print(wine['quality'].describe())
+# print(wine['quality'].value_counts())
+# plt.hist(wine['quality'], bins=7, rwidth=0.8)
+# plt.show()
 
-# 정규화 실행 전, 모든 값이 숫자인지를 확인한다.
-# 숫자가 아닌 값이 있으면 정규화 과정에 에러가 발생한다.
-# 현재 모두 non-null이고, float64거나 int64이므로 정규화 진행 가능하다.
-# print(wine.info())
+# 시각화 결과, 데이터의 양이 적고 범주가의 수가 너무 많은데다 각 데이터의 숫자가 차이가 난다.
+# 따라서, 세 가지 범주로 다시 나누어 분류를 하도록 하자.
+# 품질 3~5는 나쁨, 6은 보통, 7~9는 좋음으로 바꾼다.
 
-wine_norm = (wine - wine.min()) / (wine.max() - wine.min())
-# print(wine_norm.head())
-# print(wine_norm.describe()) # 속성들의 min값이 0, max값이 1이므로 정규화가 잘 진행되었다.
+wine.loc[wine['quality'] <= 5, 'new_quality'] = 0
+wine.loc[wine['quality'] == 6, 'new_quality'] = 1
+wine.loc[wine['quality'] >= 7, 'new_quality'] = 2
+# 데이터프레임에 사용되는 .loc은 특정한 데이터의 인덱스를 골라내는 역할을 한다.
+# 대괄호 안에 인수를 하나만 넣으면 행을 골라내고, 쉼표를 포함한 두 개의 인수를 넣으몇 차례대로 행,열을 골라낸다.
 
-# pandas의 sample() 함수는 전체 데이터프레임에서 frac 인수로 지정된 비율만큼의 행을 랜덤하게 뽑아 새로운 데이터 프레임을 만든다.
-# frac = 1 로 설정되어 있기 때문에, 100%의 데이터가 다 사용되어 섞인다.
-# 즉, 모든 데이터를 뽑아 섞는 역할을 수행한다.
+# print(wine['new_quality'].describe())
+# print(wine['new_quality'].value_counts())
+
+# 아래는 loc 예시.
+# data = [['Apple', 11], ['Banana', 23], ['Coconut', 35]]
+# df = pd.DataFrame(data, columns = ['Fruit', 'Count'])
+# print(df)
+# print()
+# print(df.loc[0])
+# print()
+# print(df.loc[0, 'Fruit'])
+
+del wine['quality']
+wine_norm = (wine-wine.min()) / (wine.max() - wine.min())
 wine_shuffle = wine_norm.sample(frac=1)
-# print(wine_shuffle.head())
-
-# numpy의 to_numpy()함수는 데이터프레임을 넘파이 array로 변환하여 반환한다.
 wine_np = wine_shuffle.to_numpy()
-# print(wine_np[:5])
 
-# 데이터 셋의 80%를 학습 데이터로, 20%를 테스트 데이터로 분할하는 과정.
-train_idx = int(len(wine_np)*0.8)  # 데이터셋을 나눌 구분점이 되는 인덱스. 데이터셋의 80% 지점.
+train_idx = int(len(wine_np)*0.8)
 train_X, train_Y = wine_np[:train_idx, :-1], wine_np[:train_idx, -1]
-# 구분점까지의 모든 IV들 (마지막 한칸을 제외한 전부)은 X에, 구분점까지의 모든 DV들 (마지막 한 칸)은 Y에 저장.
 test_X, test_Y = wine_np[train_idx:, :-1], wine_np[train_idx:, -1]
-# 구분점 이후의 모든 IV들 (마지막 한칸을 제외한 전부)은 X에, 구분점 이후의 모든 DV들 (마지막 한 칸)은 Y에 저장.
-# print(train_X[0])
-# print(train_Y[0])
-# print(test_X[0])
-# print(test_Y[0])
+train_Y = tf.keras.utils.to_categorical(train_Y, num_classes=3)
+test_Y = tf.keras.utils.to_categorical(test_Y, num_classes=3)
 
-# 정답 행렬 (Y값 행렬)을 '원-핫 인코딩(One-Hot Encoding)' 방식으로 바꾼다.
-# 원 핫 인코딩이란: 정답에 해당하는 인덱스의 값에는 1을, 나머지 인덱스에는 모두 0을 넣는 방식이다.
-# 즉, [1. 0.] 은 0번이 정답이므로 레드와인. 반대로 [0. 1.] 은 1번이 정답이므로 화이트 와인이다.
-train_Y = tf.keras.utils.to_categorical(train_Y, num_classes=2)
-test_Y = tf.keras.utils.to_categorical(test_Y, num_classes=2)
-# print(train_Y[0])
-# print(test_Y[0])
-
-# 딥러닝 학습 시작.
-# 시퀸스 모델 사용.
 model = tf.keras.Sequential([
     tf.keras.layers.Dense(units=48, activation='relu', input_shape=(12,)),
     tf.keras.layers.Dense(units=24, activation='relu'),
     tf.keras.layers.Dense(units=12, activation='relu'),
-    tf.keras.layers.Dense(units=2, activation='softmax')
+    tf.keras.layers.Dense(units=3, activation='softmax')
 ])
-# 분류모델이므로 마지막 레이어의 활성화 함수로 소프트맥스(softmax)를 사용한다.
-# 소프트맥스 함수: 출력값들을 자연로그의 밑인 e의 지수로 사용해 계산한 뒤 모둔 더한 값으로 나눈다.
-# 간단히 말하자면 -> 큰 값을 강화하고, 작은 값은 약화한다.
-
-# 원-핫 인코딩을 사용하므로 마지막 뉴런의 개수는 1개가 아니라 2개이다.
-# 예측률 예시:
-# 정답-[1, 0] 분류 네트워크 예측-[1,0] -> 100% 예측률
-# 정답-[1, 0] 분류 네트워크 예측-[0,1] -> 0% 예측률
-
 
 model.compile(optimizer=tf.keras.optimizers.Adam(lr=0.07), loss='categorical_crossentropy', metrics=['accuracy'])
 
-# 크로스 엔트로피에 관한 내용은 다시 학습해두자.
-# 정보이론에서 엔트로피란: 불확실성을 숫자로 정량화한 것.
-#                      확률의 역수에 로그를 취한 값.
-#                      확률의 역수를 취하는 이유는, 확률이 높을 수록 정보량(놀라움)이 적다고 판단하기 때문.
-#                        예: 비가 올 확률이 1%일 때, 비가 오지 않을 확률은 99%.
-#                            이 경우 각 사건의 정보량은
-#                            비가 내림: -log(0.01) = 4.605, 비가 오지 않음: -log(0.99) = 0.010
-#                            즉, 비가 내리는 것은 460배 더 놀라운 사건이 됨.
-
-# 분류문제는 정확도(accuracy)가 곧 퍼포먼스이므로, 이를 설정하는 것은 필수이다.
-
-model.summary()
-
 history = model.fit(train_X, train_Y, epochs=25, batch_size=32, validation_split=0.25)
-"""
-plt.figure(figsize=(12, 4))
+
+
+plt.figure(figsize=(12,4))
+
 plt.subplot(1, 2, 1)
 plt.plot(history.history['loss'], 'b-', label='loss')
 plt.plot(history.history['val_loss'], 'r--', label='val_loss')
@@ -116,14 +88,5 @@ plt.xlabel('Epoch')
 plt.legend()
 
 plt.show()
-"""
 
-# 다항 분류를 위해 '품질' 항목을 시각화
-print(wine['quality'].describe())
-print(wine['quality'].value_counts())
-plt.hist(wine['quality'], bins=7, rwidth=0.8)
-plt.show()
-
-# 시각화 결과,
-
-#ㅁㄴㅇㄹ
+print(model.evaluate(test_X, test_Y))
