@@ -101,7 +101,7 @@ model.compile(optimizer=tf.keras.optimizers.Adam(lr=0.07), loss='categorical_cro
 model.summary()
 
 history = model.fit(train_X, train_Y, epochs=25, batch_size=32, validation_split=0.25)
-
+"""
 plt.figure(figsize=(12, 4))
 plt.subplot(1, 2, 1)
 plt.plot(history.history['loss'], 'b-', label='loss')
@@ -116,6 +116,14 @@ plt.xlabel('Epoch')
 plt.legend()
 
 plt.show()
+"""
 
+# 다항 분류를 위해 '품질' 항목을 시각화
 print(wine['quality'].describe())
 print(wine['quality'].value_counts())
+plt.hist(wine['quality'], bins=7, rwidth=0.8)
+plt.show()
+
+# 시각화 결과,
+
+#ㅁㄴㅇㄹ
